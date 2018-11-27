@@ -1,7 +1,0 @@
-image:
-  tag: 12
-settingsDemo:  
-  serviceBus__Url: "myServiceBus.servicebus.windows.net"
-  serviceBus__Key: "abcdefghijklmnopqrstuvwzyz"
-  database__ConnectionString: "mySqlConnectionstring"
-  extraSettingNotInSettingsFile: "extraValue"
