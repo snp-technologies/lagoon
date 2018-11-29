@@ -37,7 +37,11 @@ spec:
               value: ${SERVICE_NAME}
             - name: CRONJOBS
               value: ${CRONJOBS}
-
+          env:
+            - name: PROJECT
+              value: "{{.Values.PROJECT}}"
+            - name: OPENSHIFT_PROJECT
+              value: "{{.Values.OPENSHIFT_PROJECT}}"
           readinessProbe:
             httpGet:
               path: /varnish_status
