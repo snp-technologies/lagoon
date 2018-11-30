@@ -26,9 +26,9 @@ spec:
             httpGet:
               path: /varnish_status
               port: 8080
-            initialDelaySeconds: 100
-            timeoutSeconds: 3
-            failureThreshold: 5
+            initialDelaySeconds: 1000
+            timeoutSeconds: 30
+            failureThreshold: 55
           envFrom:
             - configMapRef:
                 name: lagoon-env 
@@ -42,12 +42,30 @@ spec:
               value: "{{.Values.PROJECT}}"
             - name: OPENSHIFT_PROJECT
               value: "{{.Values.OPENSHIFT_PROJECT}}"
+            - name: SAFE_BRANCH
+              value: "{{.Values.SAFE_BRANCH}}"
+            - name: SAFE_PROJECT
+              value: "{{.Values.SAFE_PROJECT}}"
+            - name: BRANCH
+              value: "{{.Values.BRANCH}}"
+            - name: LAGOON_GIT_SHA
+              value: "{{.Values.LAGOON_GIT_SHA}}"
+            - name: SERVICE_ROUTER_URL
+              value: "{{.Values.SERVICE_ROUTER_URL}}"
+            - name: REGISTRY
+              value: "{{.Values.REGISTRY}}"
+            - name: DEPLOYMENT_STRATEGY
+              value: "{{.Values.DEPLOYMENT_STRATEGY}}"
+            - name: SERVICE_IMAGE
+              value: "{{.Values.SERVICE_IMAGE}}"
+            - name: CRONJOBS
+              value: "{{.Values.CRONJOBS}}"
           readinessProbe:
             httpGet:
               path: /varnish_status
               port: 8080
-            initialDelaySeconds: 100
-            timeoutSeconds: 3
+            initialDelaySeconds: 1000
+            timeoutSeconds: 33
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- if .Values.nodeSelector }}
