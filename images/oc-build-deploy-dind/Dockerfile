@@ -20,5 +20,5 @@ COPY tug /oc-build-deploy/tug
 COPY scripts /oc-build-deploy/scripts
 
 COPY openshift-templates  /oc-build-deploy/openshift-templates
-
+COPY helm-charts  /oc-build-deploy/helm-charts
 CMD ["/oc-build-deploy/build-deploy.sh"]

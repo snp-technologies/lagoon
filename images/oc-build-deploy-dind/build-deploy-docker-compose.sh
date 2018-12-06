@@ -647,6 +647,25 @@ do
 
 done
 
+#####Helm client binary install####
+    curl -s https://storage.googleapis.com/kubernetes-helm/helm-v2.6.1-linux-amd64.tar.gz | tar xz
+    mv linux-amd64/helm /usr/local/bin
+    chmod a+x /usr/local/bin/helm
+    helm init --client-only
+    helm init
+#####Helm server binary install and openshift permissions####
+oc project ci-drupal-drupal8-composer-70-mariadb
+TILLER_NAMESPACE=ci-drupal-drupal8-composer-70-mariadb
+oc process -f https://github.com/openshift/origin/raw/master/examples/helm/tiller-template.yaml -p TILLER_NAMESPACE="${TILLER_NAMESPACE}" | oc create -f -
+oc policy add-role-to-user edit "system:serviceaccount:${TILLER_NAMESPACE}:ci-drupal-drupal8-composer-70-mariadb"
+##############Helm chart tempalte for varnish##
+    if [ $HELM_DEPLOYMENT_TEMPLATE="helm install /oc-build-deploy/helm-charts/varnish --set image.repository=dockerimages/docker-varnish --set image.tag=latest --namespace ci-drupal-drupal8-composer-70-mariadb" ]
+    then
+    helm install /oc-build-deploy/helm-charts/varnish --set image.repository=dockerimages/docker-varnish --set image.tag=latest --set SERVICE_NAME=varnish --set  SAFE_BRANCH=newmaster --set SAFE_PROJECT=lagoon --set BRANCH=master --set LAGOON_GIT_SHA=12345 --set SERVICE_ROUTER_URL=localhost --set REGISTRY=docker.io --set DEPLOYMENT_STRATEGY=CI --set SERVICE_IMAGE=varnishdocker --set CRONJOBS=setcrond --set PROJECT=lagoon --set OPENSHIFT_PROJECT=myopenshift --namespace ci-drupal-drupal8-composer-70-mariadb
+break
+     fi
+
+
 ##############################################
 ### APPLY RESOURCES
 ##############################################
