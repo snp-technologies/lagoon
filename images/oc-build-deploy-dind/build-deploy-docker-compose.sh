@@ -647,24 +647,47 @@ do
 
 done
 
-#####Helm client binary install####
-    curl -s https://storage.googleapis.com/kubernetes-helm/helm-v2.6.1-linux-amd64.tar.gz | tar xz
-    mv linux-amd64/helm /usr/local/bin
-    chmod a+x /usr/local/bin/helm
-    helm init --client-only
-    helm init
-#####Helm server binary install and openshift permissions####
-oc project ci-drupal-drupal8-composer-70-mariadb
-TILLER_NAMESPACE=ci-drupal-drupal8-composer-70-mariadb
-oc process -f https://github.com/openshift/origin/raw/master/examples/helm/tiller-template.yaml -p TILLER_NAMESPACE="${TILLER_NAMESPACE}" | oc create -f -
-oc policy add-role-to-user edit "system:serviceaccount:${TILLER_NAMESPACE}:ci-drupal-drupal8-composer-70-mariadb"
-##############Helm chart tempalte for varnish##
-    if [ $HELM_DEPLOYMENT_TEMPLATE="helm install /oc-build-deploy/helm-charts/varnish --set image.repository=dockerimages/docker-varnish --set image.tag=latest --namespace ci-drupal-drupal8-composer-70-mariadb" ]
-    then
-    helm install /oc-build-deploy/helm-charts/varnish --set image.repository=dockerimages/docker-varnish --set image.tag=latest --set SERVICE_NAME=varnish --set  SAFE_BRANCH=newmaster --set SAFE_PROJECT=lagoon --set BRANCH=master --set LAGOON_GIT_SHA=12345 --set SERVICE_ROUTER_URL=localhost --set REGISTRY=docker.io --set DEPLOYMENT_STRATEGY=CI --set SERVICE_IMAGE=varnishdocker --set CRONJOBS=setcrond --set PROJECT=lagoon --set OPENSHIFT_PROJECT=myopenshift --namespace ci-drupal-drupal8-composer-70-mariadb
-break
-     fi
+##############################################
+### HELM CLIENT BINARY INSTALLATION
+##############################################
+curl -s https://storage.googleapis.com/kubernetes-helm/helm-v2.6.1-linux-amd64.tar.gz | tar xz
+mv linux-amd64/helm /usr/local/bin
+chmod a+x /usr/local/bin/helm
+helm init --client-only
+helm init
 
+oc create clusterrolebinding serviceaccounts-cluster-admin \
+  --clusterrole=cluster-admin \
+  --group=system:serviceaccounts
+
+##############################################
+### HELM SERVER BINARY INSTALLATION
+##############################################
+
+oc project ${OPENSHIFT_PROJECT}
+TILLER_NAMESPACE=${OPENSHIFT_PROJECT}
+oc process -f https://github.com/openshift/origin/raw/master/examples/helm/tiller-template.yaml -p TILLER_NAMESPACE="${TILLER_NAMESPACE}" | oc create -f -
+sleep 5
+oc rollout status deployment ${OPENSHIFT_PROJECT}
+sleep 5
+echo "Tiller installed sucessfully"
+
+##############################################
+### HELM CHART INSTALLATION 
+##############################################
+
+REGISTRY=docker-registry.default.svc:5000
+SERVICE_NAME="varnish"
+SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
+SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
+SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH}
+HELM_DEPLOYMENT_TEMPLATE="/oc-build-deploy/helm-charts/${SERVICE_NAME}"
+if [ -d "${HELM_DEPLOYMENT_TEMPLATE}" ]; then
+
+  helm install --name snpvarnish-helm /oc-build-deploy/helm-charts/${SERVICE_NAME} --set image.repository=${SERVICE_NAME_IMAGE_HASH} --set SERVICE_NAME=${SERVICE_NAME} --set OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} --set LAGOON_GIT_SHA=${LAGOON_GIT_SHA} --set PROJECT=${PROJECT} --set SAFE_BRANCH=${SAFE_BRANCH} --set SAFE_PROJECT=${SAFE_PROJECT} --set BRANCH=${BRANCH} --set ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE} --set MONITORING_URLS=${MONITORING_URLS} --set OPENSHIFT_NAME=${OPENSHIFT_NAME} --set REGISTRY=${REGISTRY} --set CRONJOBS=${CRONJOBS} --set SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH} --set DEPLOYMENT_STRATEGY=${DEPLOYMENT_STRATEGY} --namespace ${OPENSHIFT_PROJECT}
+
+fi
+break
 
 ##############################################
 ### APPLY RESOURCES

@@ -16,8 +16,8 @@ spec:
         release: {{ .Release.Name }}
     spec:
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        - name: {{ .Chart.Name }} 
+          image: "{{ .Values.image.repository }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 8080
@@ -26,9 +26,9 @@ spec:
             httpGet:
               path: /varnish_status
               port: 8080
-            initialDelaySeconds: 1000
-            timeoutSeconds: 30
-            failureThreshold: 55
+            initialDelaySeconds: 90
+            timeoutSeconds: 3
+            failureThreshold: 5
           envFrom:
             - configMapRef:
                 name: lagoon-env 
@@ -60,12 +60,22 @@ spec:
               value: "{{.Values.SERVICE_IMAGE}}"
             - name: CRONJOBS
               value: "{{.Values.CRONJOBS}}"
+            - name: ENVIRONMENT_TYPE
+              value: "{{.Values.ENVIRONMENT_TYPE}}"
+            - name: OPENSHIFT_NAME
+              value: "{{.Values.OPENSHIFT_NAME}}"
+            - name: MONITORING_URLS
+              value: "{{.Values.MONITORING_URLS}}"
+            - name: SERVICE_IMAGE
+              value: "{{.Values.SERVICE_IMAGE}}"
+            - name: SERVICE_NAME
+              value: "{{.Values.SERVICE_NAME}}"
           readinessProbe:
             httpGet:
               path: /varnish_status
               port: 8080
-            initialDelaySeconds: 1000
-            timeoutSeconds: 33
+            initialDelaySeconds: 5
+            timeoutSeconds: 3
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- if .Values.nodeSelector }}
