@@ -1,0 +1,93 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      annotations:
+        appuio.ch/backupcommand: /bin/sh -c "mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --all-databases"
+        backup.appuio.ch/file-extension: .{{.Values.SERVICE_NAME}}.sql
+      labels:
+        app: {{ template "name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+      - name: {{.Values.SERVICE_NAME}}-data
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-data
+      containers:
+        - name: {{ .Chart.Name }} 
+          image: "{{ .Values.image.repository }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 3306
+              protocol : TCP
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 120
+            periodSeconds: 5    
+          volumeMounts:
+            - name: {{.Values.SERVICE_NAME}}-data
+              mountPath: /var/lib/mysql
+          envFrom:
+            - configMapRef:
+                name: lagoon-env 
+          env:
+            - name: SERVICE_NAME       
+              value: "{{.Values.SERVICE_NAME}}"
+            - name: CRONJOBS
+              value: "{{.Values.CRONJOBS}}"
+          env:
+            - name: PROJECT
+              value: "{{.Values.PROJECT}}"
+            - name: OPENSHIFT_PROJECT
+              value: "{{.Values.OPENSHIFT_PROJECT}}"
+            - name: SAFE_BRANCH
+              value: "{{.Values.SAFE_BRANCH}}"
+            - name: SAFE_PROJECT
+              value: "{{.Values.SAFE_PROJECT}}"
+            - name: BRANCH
+              value: "{{.Values.BRANCH}}"
+            - name: LAGOON_GIT_SHA
+              value: "{{.Values.LAGOON_GIT_SHA}}"
+            - name: SERVICE_ROUTER_URL
+              value: "{{.Values.SERVICE_ROUTER_URL}}"
+            - name: REGISTRY
+              value: "{{.Values.REGISTRY}}"
+            - name: DEPLOYMENT_STRATEGY
+              value: "{{.Values.DEPLOYMENT_STRATEGY}}"
+            - name: SERVICE_IMAGE
+              value: "{{.Values.SERVICE_IMAGE}}"
+            - name: CRONJOBS
+              value: "{{.Values.CRONJOBS}}"
+            - name: ENVIRONMENT_TYPE
+              value: "{{.Values.ENVIRONMENT_TYPE}}"
+            - name: OPENSHIFT_NAME
+              value: "{{.Values.OPENSHIFT_NAME}}"
+            - name: MONITORING_URLS
+              value: "{{.Values.MONITORING_URLS}}"
+            - name: SERVICE_IMAGE
+              value: "{{.Values.SERVICE_IMAGE}}"
+            - name: SERVICE_NAME
+              value: "{{.Values.SERVICE_NAME}}"
+            - name: PERSISTENT_STORAGE_SIZE
+              value: "{{.Values.PERSISTENT_STORAGE_SIZE}}"
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+    {{- end }}

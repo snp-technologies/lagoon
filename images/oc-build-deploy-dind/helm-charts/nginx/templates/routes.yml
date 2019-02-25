@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{.Values.SERVICE_NAME}}-ingress
+  annotations:
+    haproxy.router.openshift.io/disable_cookies: 'true'
+spec:
+  rules:
+  - host: {{.Values.SERVICE_ROUTER_URL}}
+    http:
+      paths:
+      - path:
+        backend:
+          serviceName: {{.Values.SERVICE_NAME}}-svc
+          servicePort: 8080

@@ -1,0 +1,54 @@
+# Default values for nginx.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+replicaCount: 1
+image:
+  nginxRepository:
+  phpRepository:
+  pullPolicy: Always
+LAGOON_GIT_SHA:
+SERVICE_NAME:
+CRONJOBS:
+SAFE_BRANCH:
+SAFE_PROJECT:
+BRANCH:
+PROJECT:
+SERVICE_ROUTER_URL:
+OPENSHIFT_PROJECT:
+REGISTRY:
+DEPLOYMENT_STRATEGY:
+SERVICE_IMAGE:
+NGINX_SERVICE_IMAGE:
+PHP_SERVICE_IMAGE:
+NGINX_SERVICE_NAME:
+PHP_SERVICE_NAME:
+# MONITORING_URLS:
+# ENVIRONMENT_TYPE:
+service:
+  name: nginx-php-persistent
+  type: NodePort
+  internalPort: 80
+ingress:
+  enabled: false
+  # Used to create an Ingress record.
+  hosts:
+    - chart-example.local
+  annotations:
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  tls:
+    # Secrets must be manually created in the namespace.
+    # - secretName: chart-example-tls
+    #   hosts:
+    #     - chart-example.local
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
