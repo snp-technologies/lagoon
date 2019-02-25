@@ -656,24 +656,28 @@ chmod a+x /usr/local/bin/helm
 helm init --client-only
 helm init
 
-oc create clusterrolebinding serviceaccounts-cluster-admin \
-  --clusterrole=cluster-admin \
-  --group=system:serviceaccounts
+# oc create clusterrolebinding serviceaccounts-cluster-admin \
+#   --clusterrole=cluster-admin \
+#   --group=system:serviceaccounts
 
 ##############################################
 ### HELM SERVER BINARY INSTALLATION
 ##############################################
 
-oc project ${OPENSHIFT_PROJECT}
-TILLER_NAMESPACE=${OPENSHIFT_PROJECT}
-oc process -f https://github.com/openshift/origin/raw/master/examples/helm/tiller-template.yaml -p TILLER_NAMESPACE="${TILLER_NAMESPACE}" | oc create -f -
-sleep 5
-oc rollout status deployment ${OPENSHIFT_PROJECT}
-sleep 5
-echo "Tiller installed sucessfully"
+# oc project ${OPENSHIFT_PROJECT}
+# TILLER_NAMESPACE=${OPENSHIFT_PROJECT}
+# oc process -f https://github.com/openshift/origin/raw/master/examples/helm/tiller-template.yaml -p TILLER_NAMESPACE="${TILLER_NAMESPACE}" | oc create -f -
+# sleep 5
+# oc rollout status deployment ${OPENSHIFT_PROJECT}
+# sleep 5
+# echo "Tiller installed sucessfully"
 
 ##############################################
 ### HELM CHART INSTALLATION 
+##############################################
+
+##############################################
+### VARNISH CHART INSTALLATION 
 ##############################################
 
 REGISTRY=docker-registry.default.svc:5000
@@ -684,7 +688,114 @@ SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH}
 HELM_DEPLOYMENT_TEMPLATE="/oc-build-deploy/helm-charts/${SERVICE_NAME}"
 if [ -d "${HELM_DEPLOYMENT_TEMPLATE}" ]; then
 
-  helm install --name snpvarnish-helm /oc-build-deploy/helm-charts/${SERVICE_NAME} --set image.repository=${SERVICE_NAME_IMAGE_HASH} --set SERVICE_NAME=${SERVICE_NAME} --set OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} --set LAGOON_GIT_SHA=${LAGOON_GIT_SHA} --set PROJECT=${PROJECT} --set SAFE_BRANCH=${SAFE_BRANCH} --set SAFE_PROJECT=${SAFE_PROJECT} --set BRANCH=${BRANCH} --set ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE} --set MONITORING_URLS=${MONITORING_URLS} --set OPENSHIFT_NAME=${OPENSHIFT_NAME} --set REGISTRY=${REGISTRY} --set CRONJOBS=${CRONJOBS} --set SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH} --set DEPLOYMENT_STRATEGY=${DEPLOYMENT_STRATEGY} --namespace ${OPENSHIFT_PROJECT}
+  helm install --name snpvarnish1-helm /oc-build-deploy/helm-charts/${SERVICE_NAME} --set image.repository=${SERVICE_NAME_IMAGE_HASH} --set SERVICE_NAME=${SERVICE_NAME} --set OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} --set LAGOON_GIT_SHA=${LAGOON_GIT_SHA} --set PROJECT=${PROJECT} --set SAFE_BRANCH=${SAFE_BRANCH} --set SAFE_PROJECT=${SAFE_PROJECT} --set BRANCH=${BRANCH} --set ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE} --set MONITORING_URLS=${MONITORING_URLS} --set OPENSHIFT_NAME=${OPENSHIFT_NAME} --set REGISTRY=${REGISTRY} --set CRONJOBS=${CRONJOBS} --set SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH} --set DEPLOYMENT_STRATEGY=${DEPLOYMENT_STRATEGY} --namespace ${OPENSHIFT_PROJECT}
+
+fi
+break
+
+##############################################
+### REDIS SCRIPT
+##############################################
+
+REGISTRY=docker-registry.default.svc:5000
+SERVICE_NAME="redis"
+SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
+SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
+SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH}
+HELM_DEPLOYMENT_TEMPLATE="/oc-build-deploy/helm-charts/${SERVICE_NAME}"
+if [ -d "${HELM_DEPLOYMENT_TEMPLATE}" ]; then
+
+  helm install --name snpredis1-helm /oc-build-deploy/helm-charts/${SERVICE_NAME} --set image.repository=${SERVICE_NAME_IMAGE_HASH} --set SERVICE_NAME=${SERVICE_NAME} --set OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} --set LAGOON_GIT_SHA=${LAGOON_GIT_SHA} --set PROJECT=${PROJECT} --set SAFE_BRANCH=${SAFE_BRANCH} --set SAFE_PROJECT=${SAFE_PROJECT} --set BRANCH=${BRANCH} --set ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE} --set MONITORING_URLS=${MONITORING_URLS} --set OPENSHIFT_NAME=${OPENSHIFT_NAME} --set REGISTRY=${REGISTRY} --set CRONJOBS=${CRONJOBS} --set SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH} --set DEPLOYMENT_STRATEGY=${DEPLOYMENT_STRATEGY} --namespace ${OPENSHIFT_PROJECT}
+
+fi
+break
+
+##############################################
+### SOLR SCRIPT
+##############################################
+
+REGISTRY=docker-registry.default.svc:5000
+SERVICE_NAME="solr"
+SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
+SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
+SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH}
+HELM_DEPLOYMENT_TEMPLATE="/oc-build-deploy/helm-charts/${SERVICE_NAME}"
+
+PERSISTENT_STORAGE_SIZE="1Gi"
+
+if [ -d "${HELM_DEPLOYMENT_TEMPLATE}" ]; then
+
+  helm install --name snpsolr1-helm /oc-build-deploy/helm-charts/${SERVICE_NAME} --set image.repository=${SERVICE_NAME_IMAGE_HASH} --set SERVICE_NAME=${SERVICE_NAME} --set OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} --set LAGOON_GIT_SHA=${LAGOON_GIT_SHA} --set PROJECT=${PROJECT} --set SAFE_BRANCH=${SAFE_BRANCH} --set SAFE_PROJECT=${SAFE_PROJECT} --set BRANCH=${BRANCH} --set ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE} --set MONITORING_URLS=${MONITORING_URLS} --set OPENSHIFT_NAME=${OPENSHIFT_NAME} --set REGISTRY=${REGISTRY} --set CRONJOBS=${CRONJOBS} --set SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH} --set DEPLOYMENT_STRATEGY=${DEPLOYMENT_STRATEGY} --namespace ${OPENSHIFT_PROJECT} --set PERSISTENT_STORAGE_SIZE=${PERSISTENT_STORAGE_SIZE}
+
+fi
+break
+
+##############################################
+### NGINX-PHP-PERSISTENT SCRIPT
+##############################################
+
+REGISTRY=docker-registry.default.svc:5000
+SERVICE_NAME="nginx"
+NGINX_SERVICE_NAME="nginx"
+PHP_SERVICE_NAME="php"
+NGINX_SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${NGINX_SERVICE_NAME}]}"
+PHP_SERVICE_NAME_IMAGE="php-myname"
+NGINX_SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${NGINX_SERVICE_NAME_IMAGE}]}"
+PHP_SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${PHP_SERVICE_NAME_IMAGE}]}"
+PERSISTENT_STORAGE_SIZE="5Gi"
+PERSISTENT_STORAGE_PATH="/app/web/sites/default/files/"
+SERVICE_IMAGE=${NGINX_SERVICE_NAME_IMAGE}
+
+HELM_DEPLOYMENT_TEMPLATE="/oc-build-deploy/helm-charts/${SERVICE_NAME}"
+if [ -d "${HELM_DEPLOYMENT_TEMPLATE}" ]; then
+
+  helm install --name snpnginxphppersi1-helm /oc-build-deploy/helm-charts/${SERVICE_NAME} --set image.nginxRepository=${NGINX_SERVICE_NAME_IMAGE_HASH} --set image.phpRepository=${PHP_SERVICE_NAME_IMAGE_HASH} --set SERVICE_NAME=${SERVICE_NAME} --set OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} --set LAGOON_GIT_SHA=${LAGOON_GIT_SHA} --set PROJECT=${PROJECT} --set SAFE_BRANCH=${SAFE_BRANCH} --set SAFE_PROJECT=${SAFE_PROJECT} --set BRANCH=${BRANCH} --set ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE} --set MONITORING_URLS=${MONITORING_URLS} --set OPENSHIFT_NAME=${OPENSHIFT_NAME} --set REGISTRY=${REGISTRY} --set CRONJOBS=${CRONJOBS} --set SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH} --set DEPLOYMENT_STRATEGY=${DEPLOYMENT_STRATEGY} --namespace ${OPENSHIFT_PROJECT} --set PHP_SERVICE_NAME=${PHP_SERVICE_NAME} --set PHP_SERVICE_IMAGE=${PHP_SERVICE_NAME_IMAGE} --set NGINX_SERVICE_NAME=${NGINX_SERVICE_NAME} --set NGINX_SERVICE_IMAGE=${NGINX_SERVICE_NAME_IMAGE} --set PERSISTENT_STORAGE_SIZE=${PERSISTENT_STORAGE_SIZE} --set PERSISTENT_STORAGE_PATH=${PERSISTENT_STORAGE_PATH}
+
+fi
+break
+
+##############################################
+### CLI-PERSISTENT SCRIPT
+##############################################
+
+REGISTRY=docker-registry.default.svc:5000
+SERVICE_NAME="cli"
+SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
+SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
+SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH}
+HELM_DEPLOYMENT_TEMPLATE="/oc-build-deploy/helm-charts/${SERVICE_NAME}"
+
+PERSISTENT_STORAGE_PATH="/app/web/sites/default/files/"
+PERSISTENT_STORAGE_NAME="nginx"
+PERSISTENT_STORAGE_CLASS=${PERSISTENT_STORAGE_CLASS}
+PERSISTENT_STORAGE_SIZE=${PERSISTENT_STORAGE_SIZE}
+CRONJOB_NAME=${CRONJOB_NAME}
+CRONJOB_SCHEDULE=${CRONJOB_SCHEDULE}
+CRONJOB_COMMAND=${CRONJOB_COMMAND}
+
+if [ -d "${HELM_DEPLOYMENT_TEMPLATE}" ]; then
+
+  helm install --name snpclipersi1-helm /oc-build-deploy/helm-charts/${SERVICE_NAME} --set image.repository=${SERVICE_NAME_IMAGE_HASH} --set SERVICE_NAME=${SERVICE_NAME} --set OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} --set LAGOON_GIT_SHA=${LAGOON_GIT_SHA} --set PROJECT=${PROJECT} --set SAFE_BRANCH=${SAFE_BRANCH} --set SAFE_PROJECT=${SAFE_PROJECT} --set BRANCH=${BRANCH} --set ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE} --set MONITORING_URLS=${MONITORING_URLS} --set OPENSHIFT_NAME=${OPENSHIFT_NAME} --set REGISTRY=${REGISTRY} --set CRONJOBS=${CRONJOBS} --set SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH} --set DEPLOYMENT_STRATEGY=${DEPLOYMENT_STRATEGY} --namespace ${OPENSHIFT_PROJECT} --set PERSISTENT_STORAGE_PATH=${PERSISTENT_STORAGE_PATH} --set PERSISTENT_STORAGE_NAME=${PERSISTENT_STORAGE_NAME} --set PERSISTENT_STORAGE_CLASS=${PERSISTENT_STORAGE_CLASS} --set PERSISTENT_STORAGE_SIZE=${PERSISTENT_STORAGE_SIZE} --set CRONJOB_NAME=${CRONJOB_NAME} --set CRONJOB_SCHEDULE="18 1 * * *" --set CRONJOB_COMMAND="/lagoon/mysql-backup.sh 127.0.0.1"
+   
+fi
+break
+
+##############################################
+### MARIADB SCRIPT
+##############################################
+
+REGISTRY=docker-registry.default.svc:5000
+SERVICE_NAME="mariadb"
+SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
+SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
+SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH}
+HELM_DEPLOYMENT_TEMPLATE="/oc-build-deploy/helm-charts/${SERVICE_NAME}"
+
+PERSISTENT_STORAGE_SIZE="5Gi"
+
+if [ -d "${HELM_DEPLOYMENT_TEMPLATE}" ]; then
+
+  helm install --name snpmariadb1-helm /oc-build-deploy/helm-charts/${SERVICE_NAME} --set image.repository=${SERVICE_NAME_IMAGE_HASH} --set SERVICE_NAME=${SERVICE_NAME} --set OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} --set LAGOON_GIT_SHA=${LAGOON_GIT_SHA} --set PROJECT=${PROJECT} --set SAFE_BRANCH=${SAFE_BRANCH} --set SAFE_PROJECT=${SAFE_PROJECT} --set BRANCH=${BRANCH} --set ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE} --set MONITORING_URLS=${MONITORING_URLS} --set OPENSHIFT_NAME=${OPENSHIFT_NAME} --set REGISTRY=${REGISTRY} --set CRONJOBS=${CRONJOBS} --set SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH} --set DEPLOYMENT_STRATEGY=${DEPLOYMENT_STRATEGY} --namespace ${OPENSHIFT_PROJECT} --set PERSISTENT_STORAGE_SIZE=${PERSISTENT_STORAGE_SIZE}
 
 fi
 break
@@ -791,3 +902,4 @@ do
 
   let COUNTER=COUNTER+1
 done
+
