@@ -655,9 +655,8 @@ mv linux-amd64/helm /usr/local/bin
 chmod a+x /usr/local/bin/helm
 helm init --client-only
 
-### HELM Template Plugin installation ###
+#HELM TEMPLATE PLUGIN INSTALLATION
 helm plugin install https://github.com/technosophos/helm-template --version master
-
 
 # oc create clusterrolebinding serviceaccounts-cluster-admin \
 #   --clusterrole=cluster-admin \
@@ -682,18 +681,20 @@ helm plugin install https://github.com/technosophos/helm-template --version mast
 ##############################################
 ### VARNISH CHART INSTALLATION 
 ##############################################
+##############################################
+### VARNISH CHART INSTALLATION 
+##############################################
+
 REGISTRY=docker-registry.default.svc:5000
 SERVICE_NAME="varnish"
 SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
 SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
 SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH}
 HELM_DEPLOYMENT_TEMPLATE="/oc-build-deploy/helm-charts/${SERVICE_NAME}"
+
 if [ -d "${HELM_DEPLOYMENT_TEMPLATE}" ]; then
-helm template "/oc-build-deploy/helm-charts/${SERVICE_NAME}" 
-
-                     helm template -r ${SERVICE_NAME} --set image.repository=${SERVICE_NAME_IMAGE_HASH} --set SERVICE_NAME=${SERVICE_NAME} --set OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} --set LAGOON_GIT_SHA=${LAGOON_GIT_SHA} --set PROJECT=${PROJECT} --set SAFE_BRANCH=${SAFE_BRANCH} --set SAFE_PROJECT=${SAFE_PROJECT} --set BRANCH=${BRANCH} --set ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE} --set MONITORING_URLS=${MONITORING_URLS} --set OPENSHIFT_NAME=${OPENSHIFT_NAME} --set REGISTRY=${REGISTRY} --set CRONJOBS=${CRONJOBS} --set SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH} --set DEPLOYMENT_STRATEGY=${DEPLOYMENT_STRATEGY} --namespace ${OPENSHIFT_PROJECT} "/oc-build-deploy/helm-charts/${SERVICE_NAME}" > ${SERVICE_NAME}.txt
-oc apply -f ${SERVICE_NAME}.txt -n ${OPENSHIFT_PROJECT}
-
+  helm template -r ${SERVICE_NAME} --set image.repository=${SERVICE_NAME_IMAGE_HASH} --set SERVICE_NAME=${SERVICE_NAME} --set OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} --set LAGOON_GIT_SHA=${LAGOON_GIT_SHA} --set PROJECT=${PROJECT} --set SAFE_BRANCH=${SAFE_BRANCH} --set SAFE_PROJECT=${SAFE_PROJECT} --set BRANCH=${BRANCH} --set ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE} --set MONITORING_URLS=${MONITORING_URLS} --set OPENSHIFT_NAME=${OPENSHIFT_NAME} --set REGISTRY=${REGISTRY} --set CRONJOBS=${CRONJOBS} --set SERVICE_IMAGE=${SERVICE_NAME_IMAGE_HASH} --set DEPLOYMENT_STRATEGY=${DEPLOYMENT_STRATEGY} --namespace ${OPENSHIFT_PROJECT} "/oc-build-deploy/helm-charts/${SERVICE_NAME}" > ${SERVICE_NAME}.txt
+  oc apply -f ${SERVICE_NAME}.txt -n ${OPENSHIFT_PROJECT}
 fi
 break
 
